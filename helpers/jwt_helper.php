@@ -7,18 +7,28 @@ use \Firebase\JWT\Key;
 function generate_jwt($user) {
     $secretKey = 'your_secret_key'; 
     $issuedAt = time();
-    $expirationTime = $issuedAt + 3600; // Token valid for 1 hour (3600 seconds)
+    $expirationTime = $issuedAt + 3600;
 
     $payload = [
-        'iss' => 'http://localhost/taskmanager', // Issuer
-        'aud' => 'http://localhost',             // Audience
-        'iat' => $issuedAt,                      // Issued at
-        'exp' => $expirationTime,                // Expiry
-        'sub' => $user['UserID'],                // Subject (user ID)
+        'iss' => 'http://localhost/taskmanager',
+        'aud' => 'http://localhost',
+        'iat' => $issuedAt,
+        'exp' => $expirationTime,
+        'sub' => $user['UserID'],
         'username' => $user['Username'],
         'email' => $user['Email'],
         'role' => $user['Role']
     ];
 
     return JWT::encode($payload, $secretKey, 'HS256');
+}
+
+function validate_jwt($token) {
+    $secretKey = 'your_secret_key';
+
+    try {
+        return JWT::decode($token, new Key($secretKey, 'HS256'));
+    } catch (Exception $e) {
+        return null;
+    }
 }
