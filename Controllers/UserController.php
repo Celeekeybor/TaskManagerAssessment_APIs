@@ -62,4 +62,42 @@ class UserController {
         http_response_code(500);
         return ['message' => 'Deletion failed'];
     }
+
+    public function create($data, $authUser) {
+    if ($authUser->role !== 'Admin') {
+        http_response_code(403);
+        return ['message' => 'Only admins can create users'];
+    }
+
+    $username = $data['username'] ?? '';
+    $email = $data['email'] ?? '';
+    $password = $data['password'] ?? '';
+    $role = $data['role'] ?? 'User';
+
+    if (!$username || !$email || !$password) {
+        http_response_code(400);
+        return ['message' => 'Username, email, and password are required'];
+    }
+
+    if (!in_array($role, ['User', 'Admin'])) {
+        http_response_code(400);
+        return ['message' => 'Invalid role'];
+    }
+
+    $userModel = $this->userModel;
+    if ($userModel->findByEmail($email)) {
+        http_response_code(409);
+        return ['message' => 'Email already exists'];
+    }
+
+    $passwordHash = password_hash($password, PASSWORD_BCRYPT);
+
+    if ($userModel->create($username, $email, $passwordHash, $role)) {
+        return ['message' => 'User created successfully'];
+    }
+
+    http_response_code(500);
+    return ['message' => 'Failed to create user'];
+}
+
 }

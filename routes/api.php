@@ -85,6 +85,21 @@ if (preg_match('/\/api\/tasks\/(\d+)$/', $uri, $matches) && $requestMethod === '
     exit;
 }
 
+// GET /api/admin/tasks - Admin views tasks they created
+if (preg_match('/\/api\/admin\/tasks$/', $uri) && $requestMethod === 'GET') {
+    $authUser = checkAuth();
+    echo json_encode($taskController->getCreatedTasks($authUser));
+    exit;
+}
+
+// POST /api/admin/users - Admin creates a new user
+if (preg_match('/\/api\/admin\/users$/', $uri) && $requestMethod === 'POST') {
+    $authUser = checkAuth();
+    $data = json_decode(file_get_contents("php://input"), true);
+    echo json_encode($userController->create($data, $authUser));
+    exit;
+}
+
 
 http_response_code(404);
 echo json_encode(["message" => "Route not found"]);

@@ -38,4 +38,14 @@ class TaskController {
         $status = $data['status'] ?? '';
         return $this->taskModel->updateTaskStatus($taskId, $authUser->sub, $status);
     }
+    
+    public function getCreatedTasks($authUser) {
+    if ($authUser->role !== 'Admin') {
+        http_response_code(403);
+        return ['message' => 'Access denied: only admins can view created tasks'];
+    }
+
+    return $this->taskModel->getTasksCreatedBy($authUser->sub);
+}
+
 }

@@ -62,4 +62,16 @@ class Task {
 
         return ['message' => 'Task status updated'];
     }
+
+    public function getTasksCreatedBy($adminId) {
+    $stmt = $this->conn->prepare("
+        SELECT TaskID, Title, Description, Deadline, Status, CreatedAt
+        FROM Tasks
+        WHERE CreatedBy = ?
+        ORDER BY CreatedAt DESC
+    ");
+    $stmt->execute([$adminId]);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
 }
