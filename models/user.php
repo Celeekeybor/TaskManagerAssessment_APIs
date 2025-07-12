@@ -54,8 +54,16 @@ class User {
         return $stmt->execute($params);
     }
 
+    public function findById($id) {
+    $stmt = $this->conn->prepare("SELECT UserID, Username, Email, Role, CreatedAt FROM {$this->table} WHERE UserID = :id");
+    $stmt->bindParam(":id", $id);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
     public function delete($id) {
         $stmt = $this->conn->prepare("DELETE FROM {$this->table} WHERE UserID = ?");
         return $stmt->execute([$id]);
     }
+
+
 }

@@ -16,6 +16,23 @@ class UserController {
 
         return $this->userModel->getAll();
     }
+    public function getById($id, $authUser) {
+        $user = $this->userModel->findById($id);
+        if (!$user) {
+            http_response_code(404);
+            return ["message" => "User not found"];
+        }
+
+        // Optional: Only allow admin or the user themselves
+        if ($authUser->role !== 'Admin' && $authUser->sub != $id) {
+            http_response_code(403);
+            return ["message" => "Unauthorized"];
+        }
+
+        // Don't return password hash
+        unset($user['PasswordHash']);
+        return $user;
+    }
 
     public function update($id, $data, $authUser) {
         // Admins can update anyone; users can only update themselves

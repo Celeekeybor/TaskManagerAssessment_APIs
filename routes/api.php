@@ -50,5 +50,13 @@ if (preg_match('/\/api\/users\/(\d+)$/', $uri, $matches) && $requestMethod === '
     exit;
 }
 
+// GET /api/users/{id}
+if (preg_match('/\/api\/users\/(\d+)$/', $uri, $matches) && $requestMethod === 'GET') {
+    $authUser = checkAuth();
+    $userId = $matches[1];
+    echo json_encode($userController->getById($userId, $authUser));
+    exit;
+}
+
 http_response_code(404);
 echo json_encode(["message" => "Route not found"]);
