@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Dashboard | Task Manager</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+</head>
+<body>
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-4">
+    <div class="container-fluid">
+      <span class="navbar-brand"><i class="fas fa-tasks me-2"></i> Task Manager</span>
+      <div class="ms-auto d-flex align-items-center">
+        <span class="text-white fw-semibold me-3" id="welcomeUser">Welcome!</span>
+        <button id="logoutBtn" class="btn btn-outline-light btn-sm">
+          <i class="fas fa-sign-out-alt"></i> Logout
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container my-4">
+    <!-- === USERS SECTION === -->
+    <section class="mb-5">
+      <h2>Manage Users</h2>
+
+      <!-- Add User Form -->
+      <!-- ✅ THE FIX IS HERE: Added the password input field -->
+      <form id="addUserForm" class="row g-3 mb-3">
+          <div class="col-md-4">
+            <input type="text" name="name" class="form-control" placeholder="Full Name / Username" required />
+          </div>
+          <div class="col-md-4">
+            <input type="email" name="email" class="form-control" placeholder="Email" required />
+          </div>
+          <div class="col-md-4">
+            <input type="password" name="password" class="form-control" placeholder="Set Initial Password" required />
+          </div>
+          <div class="col-12">
+            <button type="submit" class="btn btn-success"><i class="fas fa-user-plus"></i> Add User</button>
+          </div>
+      </form>
+
+      <!-- Users Table -->
+      <div class="table-responsive">
+        <table class="table table-bordered table-hover bg-white" id="usersTable">
+          <thead class="table-secondary text-center">
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th style="width: 180px;">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- === ASSIGN TASKS SECTION === -->
+    <section class="mb-5">
+      <h2>Assign Task to User</h2>
+      <form id="assignTaskForm" class="row g-3">
+        <div class="col-md-4">
+          <input type="text" name="title" class="form-control" placeholder="Task Title" required />
+        </div>
+        <div class="col-md-4">
+          <textarea name="description" class="form-control" placeholder="Task Description" required></textarea>
+        </div>
+        <div class="col-md-2">
+          <select name="user_id" class="form-select" required>
+            <option value="">-- Select User --</option>
+          </select>
+        </div>
+        <div class="col-md-2">
+          <input type="datetime-local" name="deadline" class="form-control" required />
+        </div>
+        <div class="col-md-12">
+          <button type="submit" class="btn btn-primary"><i class="fas fa-plus"></i> Assign Task</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- === ALL TASKS SECTION === -->
+    <section>
+      <h2>All Tasks</h2>
+      <div class="table-responsive">
+        <table class="table table-striped" id="tasksTable">
+          <thead>
+            <tr>
+              <th>Title</th>
+              <th>User</th>
+              <th>Status</th>
+              <th>Deadline</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Populated via JS -->
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+  
+  <!-- The script tag for Bootstrap JS -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- ✅ The script tag for your admin.js MUST BE LAST -->
+  <script src="js/admin.js"></script>
+</body>
+</html>
