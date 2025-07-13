@@ -1,48 +1,65 @@
 <?php
-require_once '../models/User.php';
-require_once '../helpers/auth_helper.php';
+require_once './models/User.php';
 
 class UserController {
-    private $db;
+    private $userModel;
 
     public function __construct($db) {
-        $this->db = $db;
+        $this->userModel = new User($db);
     }
 
-    public function listUsers() {
-        $userModel = new User($this->db);
-        return $userModel->getAll();
-    }
-
-    public function createUser($data) {
-        $userModel = new User($this->db);
-        $username = $data['username'] ?? '';
-        $email = $data['email'] ?? '';
-        $password = $data['password'] ?? '';
-        $role = $data['role'] ?? 'User';
-
-        if (!$username || !$email || !$password) {
-            http_response_code(400);
-            return ['message' => 'Missing fields'];
+    public function getAll($authUser) {
+        if ($authUser->role !== 'Admin') {
+            http_response_code(403);
+            return ['message' => 'Access denied'];
         }
 
-        $passwordHash = password_hash($password, PASSWORD_BCRYPT);
-        return $userModel->create($username, $email, $passwordHash, $role)
-            ? ['message' => 'User created']
-            : ['message' => 'Error creating user'];
+        return $this->userModel->getAll();
+    }
+    public function getById($id, $authUser) {
+        $user = $this->userModel->findById($id);
+        if (!$user) {
+            http_response_code(404);
+            return ["message" => "User not found"];
+        }
+
+        // Optional: Only allow admin or the user themselves
+        if ($authUser->role !== 'Admin' && $authUser->sub != $id) {
+            http_response_code(403);
+            return ["message" => "Unauthorized"];
+        }
+
+        // Don't return password hash
+        unset($user['PasswordHash']);
+        return $user;
     }
 
-    public function updateUser($id, $data) {
-        $userModel = new User($this->db);
-        return $userModel->update($id, $data)
-            ? ['message' => 'User updated']
-            : ['message' => 'Update failed'];
+    public function update($id, $data, $authUser) {
+        // Admins can update anyone; users can only update themselves
+        if ($authUser->role !== 'Admin' && $authUser->sub != $id) {
+            http_response_code(403);
+            return ['message' => 'Permission denied'];
+        }
+
+        if ($this->userModel->update($id, $data)) {
+            return ['message' => 'User updated'];
+        }
+
+        http_response_code(500);
+        return ['message' => 'Update failed'];
     }
 
-    public function deleteUser($id) {
-        $userModel = new User($this->db);
-        return $userModel->delete($id)
-            ? ['message' => 'User deleted']
-            : ['message' => 'Delete failed'];
+    public function delete($id, $authUser) {
+        if ($authUser->role !== 'Admin') {
+            http_response_code(403);
+            return ['message' => 'Only admins can delete users'];
+        }
+
+        if ($this->userModel->delete($id)) {
+            return ['message' => 'User deleted'];
+        }
+
+        http_response_code(500);
+        return ['message' => 'Deletion failed'];
     }
 }
