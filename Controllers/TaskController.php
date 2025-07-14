@@ -2,8 +2,6 @@
 require_once './models/Task.php';
 require_once './helpers/mail_helper.php';
 
-
-
 class TaskController {
     private $taskModel;
 
@@ -11,49 +9,84 @@ class TaskController {
         $this->taskModel = new Task($db);
     }
 
-    // Admin assign a task
-    public function create($data, $authUser) {
-        if ($authUser->role !== 'Admin') {
-            http_response_code(403);
-            return ['message' => 'Only admins can assign tasks'];
-        }
-
-        $title = $data['title'] ?? '';
-        $description = $data['description'] ?? '';
-        $deadline = $data['deadline'] ?? '';
-        $assignedTo = $data['user_id'] ?? '';
-       
-
-
-        if (!$title || !$assignedTo) {
-            http_response_code(400);
-            return ['message' => 'Title and user_id are required'];
-        }
-        
- if ($user && !empty($user['Email'])) {
-        sendTaskNotification($user['Email'], $title);  // ✅ Send the email
-    }
-        return $this->taskModel->createTask($title, $description, $deadline, $authUser->sub, $assignedTo);
+    /**
+     * Admin assigns a task to multiple users
+     */
+  public function create($data, $authUser) {
+    if ($authUser->role !== 'Admin') {
+        http_response_code(403);
+        echo json_encode(['message' => 'Only admins can assign tasks']);
+        exit;
     }
 
-    // User gets their tasks
+    $title = trim($data['title'] ?? '');
+    $description = trim($data['description'] ?? '');
+    $deadline = trim($data['deadline'] ?? '');
+    $assignedToUser = trim($data['user_id'] ?? '');
+
+    if (!$title || !$assignedToUser) {
+        http_response_code(400);
+        echo json_encode(['message' => 'Title and user_id are required']);
+        exit;
+    }
+
+    // Create the task
+    $result = $this->taskModel->createTask(
+        $title, $description, $deadline, $authUser->sub, $assignedToUser
+    );
+
+    // Send email
+    try {
+        $conn = $this->taskModel->getConnection();
+        $stmt = $conn->prepare("SELECT UserID, Email, Username FROM Users WHERE UserID = ?");
+        $stmt->execute([$assignedToUser]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($user && !empty($user['Email'])) {
+            error_log("📧 Sending task email to: {$user['Email']}");
+            $emailSent = sendTaskNotification(
+                $user['Email'],
+                $user['Username'] ?? 'Team Member',
+                $title, $description, $deadline,
+                $authUser->username
+            );
+            error_log($emailSent ? " Email sent" : " Failed to send email");
+        }
+    } catch (Exception $e) {
+        error_log("❗ Email error: " . $e->getMessage());
+    }
+
+    // Respond to client
+    header('Content-Type: application/json');
+    echo json_encode($result);
+    exit;
+}
+
+
+    /**
+     * Logged-in user fetches assigned tasks
+     */
     public function getMyTasks($authUser) {
         return $this->taskModel->getTasksByUser($authUser->sub);
     }
 
-    // User updates task status
+    /**
+     * User updates task status
+     */
     public function updateStatus($taskId, $data, $authUser) {
         $status = $data['status'] ?? '';
         return $this->taskModel->updateTaskStatus($taskId, $authUser->sub, $status);
     }
-    
+
+    /**
+     * Admin views tasks they created
+     */
     public function getCreatedTasks($authUser) {
-    if ($authUser->role !== 'Admin') {
-        http_response_code(403);
-        return ['message' => 'Access denied: only admins can view created tasks'];
+        if ($authUser->role !== 'Admin') {
+            http_response_code(403);
+            return ['message' => 'Access denied: only admins can view created tasks'];
+        }
+
+        return $this->taskModel->getTasksCreatedBy($authUser->sub);
     }
-
-    return $this->taskModel->getTasksCreatedBy($authUser->sub);
-}
-
 }

@@ -140,34 +140,36 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // --- TASKS ---
-    async function loadAllTasks() {
-        try {
-            const response = await apiFetch('/admin/tasks');
-            console.log('Tasks response:', response);
-            const tasks = Array.isArray(response) ? response : [];
+   async function loadAllTasks() {
+    try {
+        const response = await apiFetch('/admin/tasks');
+        console.log('Tasks response:', response);
 
-            taskListTableBody.innerHTML = '';
+        const tasks = Array.isArray(response) ? response : [];
 
-            if (tasks.length === 0) {
-                taskListTableBody.innerHTML = '<tr><td colspan="4" class="text-center">No tasks found.</td></tr>';
-                return;
-            }
+        taskListTableBody.innerHTML = '';
 
-            tasks.forEach(task => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td>${task.Title}</td>
-                    <td>${task.AssignedToUsername || 'N/A'}</td>
-                    <td><span class="badge bg-secondary">${task.Status}</span></td>
-                    <td>${new Date(task.Deadline).toLocaleDateString()}</td>
-                `;
-                taskListTableBody.appendChild(row);
-            });
-        } catch (error) {
-            console.error('Failed to load tasks:', error);
-            taskListTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${error.message}</td></tr>`;
+        if (tasks.length === 0) {
+            taskListTableBody.innerHTML = '<tr><td colspan="4" class="text-center">No tasks found.</td></tr>';
+            return;
         }
+
+        tasks.forEach(task => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${task.Title}</td>
+                <td>${task.AssignedToUsername || 'N/A'}</td>
+                <td><span class="badge bg-secondary">${task.Status}</span></td>
+                <td>${new Date(task.Deadline).toLocaleDateString()}</td>
+            `;
+            taskListTableBody.appendChild(row);
+        });
+    } catch (error) {
+        console.error('Failed to load tasks:', error);
+        taskListTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${error.message}</td></tr>`;
     }
+}
+
 
     async function handleAssignTask(event) {
         event.preventDefault();
