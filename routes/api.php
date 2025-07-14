@@ -5,7 +5,6 @@ require_once './controllers/UserController.php';
 require_once './helpers/auth_middleware.php';
 require_once './controllers/TaskController.php';
 
-
 header("Content-Type: application/json");
 $requestMethod = $_SERVER['REQUEST_METHOD'];
 $uri = $_SERVER['REQUEST_URI'];
@@ -29,10 +28,11 @@ if (preg_match('/\/api\/login/', $uri) && $requestMethod === 'POST') {
     exit;
 }
 
-// GET /api/users
+// ✅ FIXED: GET /api/users → DO NOT double-wrap
 if (preg_match('/\/api\/users$/', $uri) && $requestMethod === 'GET') {
     $authUser = checkAuth();
-    echo json_encode($userController->getAll($authUser));
+    $response = $userController->getAll($authUser);
+    echo json_encode($response); // Don't wrap again
     exit;
 }
 
@@ -100,6 +100,6 @@ if (preg_match('/\/api\/admin\/users$/', $uri) && $requestMethod === 'POST') {
     exit;
 }
 
-
+// DEFAULT: 404
 http_response_code(404);
 echo json_encode(["message" => "Route not found"]);

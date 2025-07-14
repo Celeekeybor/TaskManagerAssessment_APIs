@@ -10,25 +10,27 @@ function sendTaskNotification($toEmail, $taskTitle) {
     try {
         // Server settings
         $mail->isSMTP();
-        $mail->Host       = 'smtp.gmail.com';     // Replace with your mail server
+        $mail->Host       = 'smtp.gmail.com';
         $mail->SMTPAuth   = true;
-        $mail->Username   = 'your-email@gmail.com';  // Sender email
-        $mail->Password   = 'your-email-password';   // App Password (for Gmail use App Passwords)
+        $mail->Username   = 'celestinbor02@gmail.com';       // ✅ Your Gmail
+        $mail->Password   = 'Memoi$02';          // ✅ App password
         $mail->SMTPSecure = 'tls';
         $mail->Port       = 587;
 
         // Recipients
-        $mail->setFrom('your-email@gmail.com', 'Task Manager');
-        $mail->addAddress($toEmail);
+        $mail->setFrom('celestinbor02@gmail.com', 'Task Manager');
+        $mail->addAddress($toEmail);  // ✅ Receiver email
 
         // Content
         $mail->isHTML(true);
         $mail->Subject = 'New Task Assigned';
-        $mail->Body    = "Hello,<br>You have been assigned a new task: <strong>$taskTitle</strong>.";
+        $mail->Body    = "Hello,You have been assigned a new task: <strong>$taskTitle</strong>.";
 
         $mail->send();
         return true;
     } catch (Exception $e) {
+        error_log("Mailer Error: {$mail->ErrorInfo}");
         return false;
     }
 }
+

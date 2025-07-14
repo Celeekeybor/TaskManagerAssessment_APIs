@@ -6,6 +6,9 @@
   <title>Admin Dashboard | Task Manager</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"/>
+  <head>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+</head>
 </head>
 <body>
   <nav class="navbar navbar-expand-lg navbar-dark bg-primary px-4">
@@ -24,9 +27,6 @@
     <!-- === USERS SECTION === -->
     <section class="mb-5">
       <h2>Manage Users</h2>
-
-      <!-- Add User Form -->
-      <!-- ✅ THE FIX IS HERE: Added the password input field -->
       <form id="addUserForm" class="row g-3 mb-3">
           <div class="col-md-4">
             <input type="text" name="name" class="form-control" placeholder="Full Name / Username" required />
@@ -47,6 +47,8 @@
         <table class="table table-bordered table-hover bg-white" id="usersTable">
           <thead class="table-secondary text-center">
             <tr>
+              <!-- ✅ ADDED USER ID COLUMN -->
+              <th style="width: 10%;">User ID</th>
               <th>Name</th>
               <th>Email</th>
               <th style="width: 180px;">Actions</th>
@@ -59,6 +61,7 @@
       </div>
     </section>
 
+    <!-- Other sections remain the same -->
     <!-- === ASSIGN TASKS SECTION === -->
     <section class="mb-5">
       <h2>Assign Task to User</h2>
@@ -104,9 +107,7 @@
     </section>
   </main>
   
-  <!-- The script tag for Bootstrap JS -->
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-  <!-- ✅ The script tag for your admin.js MUST BE LAST -->
   <script src="js/admin.js"></script>
 </body>
 </html>

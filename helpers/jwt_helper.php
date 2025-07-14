@@ -9,16 +9,19 @@ function generate_jwt($user) {
     $issuedAt = time();
     $expirationTime = $issuedAt + 3600;
 
-    $payload = [
-        'iss' => 'http://localhost/taskmanager',
-        'aud' => 'http://localhost',
-        'iat' => $issuedAt,
-        'exp' => $expirationTime,
-        'sub' => $user['UserID'],
-        'username' => $user['Username'],
-        'email' => $user['Email'],
-        'role' => $user['Role']
-    ];
+    $payload =$issuedAt = time();
+$expirationTime = $issuedAt + 3600;
+
+$payload = [
+    'iss' => 'http://localhost/taskmanager',
+    'aud' => 'http://localhost',
+    'iat' => $issuedAt,
+    'exp' => $expirationTime,
+    'sub' => $user['UserID'],
+    'username' => $user['Username'],
+    'email' => $user['Email'],
+    'role' => $user['Role']
+];
 
     return JWT::encode($payload, $secretKey, 'HS256');
 }

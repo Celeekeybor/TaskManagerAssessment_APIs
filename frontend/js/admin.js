@@ -3,34 +3,33 @@ document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem('token');
     const API_BASE = "http://localhost/taskmanager/api";
 
-    // --- ELEMENT SELECTORS (Matching your HTML) ---
+    // --- ELEMENT SELECTORS ---
     const userListTableBody = document.querySelector('#usersTable tbody');
     const taskListTableBody = document.querySelector('#tasksTable tbody');
     const addUserForm = document.getElementById('addUserForm');
     const assignTaskForm = document.getElementById('assignTaskForm');
     const userSelectDropdown = document.querySelector('select[name="user_id"]');
-    
-    // --- AUTHENTICATION & INITIALIZATION ---
+
+    // --- AUTH & INIT ---
     function initializeAdminDashboard() {
         if (!token) {
             window.location.href = 'login.html';
             return;
         }
-        
+
         const username = localStorage.getItem('username') || 'Admin';
         document.getElementById('welcomeUser').textContent = `Welcome, ${username}!`;
-        
+
         document.getElementById('logoutBtn').addEventListener('click', logout);
+        addUserForm.addEventListener('submit', handleAddUser);
+        assignTaskForm.addEventListener('submit', handleAssignTask);
+        userListTableBody.addEventListener('click', handleUserActions);
 
         loadAllUsers();
         loadAllTasks();
-
-        addUserForm.addEventListener('submit', handleAddUser);
-        assignTaskForm.addEventListener('submit', handleAssignTask);
-        userListTableBody.addEventListener('click', handleDeleteUser);
     }
 
-    // --- API HELPER FUNCTION ---
+    // --- API HELPER ---
     async function apiFetch(endpoint, method = 'GET', body = null) {
         const options = {
             method,
@@ -39,94 +38,100 @@ document.addEventListener("DOMContentLoaded", () => {
                 'Authorization': `Bearer ${token}`
             }
         };
-        if (body) {
-            options.body = JSON.stringify(body);
-        }
-        
-        const response = await fetch(`${API_BASE}${endpoint}`, options);
-        const responseData = await response.json();
+        if (body) options.body = JSON.stringify(body);
 
-        if (!response.ok) {
-            throw new Error(responseData.message || `Request failed with status ${response.status}`);
+        const response = await fetch(`${API_BASE}${endpoint}`, options);
+        if (response.status === 401) {
+            logout();
+            throw new Error('Session expired.');
         }
-        return responseData;
+
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.message || 'Request failed.');
+        return data;
     }
 
-    // --- USER MANAGEMENT FUNCTIONS ---
-    
-    // ✅ THIS FUNCTION HAS BEEN CORRECTED
+    // --- USERS ---
     async function loadAllUsers() {
         try {
             const response = await apiFetch('/users');
-            const users = response.data || [];
-            
+            const users = Array.isArray(response.data) ? response.data : [];
+
             userListTableBody.innerHTML = '';
             userSelectDropdown.innerHTML = '<option value="">-- Select User --</option>';
 
             if (users.length === 0) {
-                userListTableBody.innerHTML = '<tr><td colspan="3" class="text-center">No users found.</td></tr>';
+                userListTableBody.innerHTML = '<tr><td colspan="4" class="text-center">No users found.</td></tr>';
                 return;
             }
 
-            users.forEach(user => {
-                const row = document.createElement('tr');
-                // Using lowercase keys to match what your API sends
-                row.innerHTML = `
-                    <td>${user.username}</td>
-                    <td>${user.email}</td>
-                    <td>
-                        <button class="btn btn-danger btn-sm delete-user-btn" data-user-id="${user.userid}">Delete</button>
-                    </td>
-                `;
-                userListTableBody.appendChild(row);
+     users.forEach(user => {
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>${user.UserID}</td>
+        <td>${user.Username}</td>
+        <td>${user.Email}</td>
+        <td>
+            <button class="btn btn-primary btn-sm edit-user-btn" data-user-id="${user.UserID}">Edit</button>
+            <button class="btn btn-danger btn-sm delete-user-btn" data-user-id="${user.UserID}">Delete</button>
+        </td>
+    `;
+    userListTableBody.appendChild(row);
 
-                // Using lowercase keys here as well
-                if (user.role !== 'Admin') {
-                    const option = document.createElement('option');
-                    option.value = user.userid;
-                    option.textContent = user.username;
-                    userSelectDropdown.appendChild(option);
-                }
-            });
+    if (user.Role !== 'Admin') {
+        const option = document.createElement('option');
+        option.value = user.UserID;
+        option.textContent = user.Username;
+        userSelectDropdown.appendChild(option);
+    }
+});
+
         } catch (error) {
             console.error('Failed to load users:', error);
-            userListTableBody.innerHTML = `<tr><td colspan="3" class="text-center text-danger">${error.message}</td></tr>`;
+            userListTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${error.message}</td></tr>`;
         }
     }
-    
+
     async function handleAddUser(event) {
         event.preventDefault();
-        
+
         const form = event.currentTarget;
         const formData = new FormData(form);
         const userData = Object.fromEntries(formData.entries());
-        
+
         try {
-            const result = await apiFetch('/admin/users', 'POST', {
+            await apiFetch('/admin/users', 'POST', {
                 username: userData.name,
                 email: userData.email,
                 password: userData.password,
                 role: 'User'
             });
-
-            alert(result.message || 'User added successfully!');
             form.reset();
-            loadAllUsers(); // This will now work correctly after adding a user
+            loadAllUsers();
         } catch (error) {
             console.error('Error adding user:', error);
             alert(`Error: ${error.message}`);
         }
     }
-    
-    async function handleDeleteUser(event) {
-        if (!event.target.classList.contains('delete-user-btn')) return;
 
-        const userId = event.target.dataset.userId;
-        if (!confirm(`Are you sure you want to delete user with ID: ${userId}?`)) return;
-        
+    function handleUserActions(event) {
+        const target = event.target;
+        const userId = target.dataset.userId;
+
+        if (target.classList.contains('delete-user-btn')) {
+            if (confirm(`Are you sure you want to delete user with ID: ${userId}?`)) {
+                deleteUser(userId);
+            }
+        }
+
+        if (target.classList.contains('edit-user-btn')) {
+            alert(`Edit functionality for user ID: ${userId} is not yet implemented.`);
+        }
+    }
+
+    async function deleteUser(userId) {
         try {
-            const result = await apiFetch(`/users/${userId}`, 'DELETE');
-            alert(result.message || 'User deleted successfully!');
+            await apiFetch(`/users/${userId}`, 'DELETE');
             loadAllUsers();
         } catch (error) {
             console.error('Error deleting user:', error);
@@ -134,12 +139,13 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- TASK MANAGEMENT FUNCTIONS ---
+    // --- TASKS ---
     async function loadAllTasks() {
         try {
             const response = await apiFetch('/admin/tasks');
-            const tasks = response.data || [];
-            
+            console.log('Tasks response:', response);
+            const tasks = Array.isArray(response) ? response : [];
+
             taskListTableBody.innerHTML = '';
 
             if (tasks.length === 0) {
@@ -149,10 +155,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             tasks.forEach(task => {
                 const row = document.createElement('tr');
-                // Assuming your tasks API sends PascalCase keys. Adjust if needed.
                 row.innerHTML = `
                     <td>${task.Title}</td>
-                    <td>${task.AssignedToUsername || 'N/A'}</td> 
+                    <td>${task.AssignedToUsername || 'N/A'}</td>
                     <td><span class="badge bg-secondary">${task.Status}</span></td>
                     <td>${new Date(task.Deadline).toLocaleDateString()}</td>
                 `;
@@ -174,13 +179,13 @@ document.addEventListener("DOMContentLoaded", () => {
         const assignedTo = form.elements['user_id'].value;
 
         try {
-            const result = await apiFetch('/tasks', 'POST', {
-                Title: title,
-                Description: description,
-                Deadline: deadline,
-                AssignedTo: assignedTo
-            });
-            alert(result.message || 'Task assigned successfully!');
+            await apiFetch('/tasks', 'POST', {
+    title: title,
+    description: description,
+    deadline: deadline,
+    user_id: assignedTo
+});
+
             form.reset();
             loadAllTasks();
         } catch (error) {
@@ -189,13 +194,12 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    // --- LOGOUT FUNCTION ---
+    // --- LOGOUT ---
     function logout() {
-        localStorage.removeItem('token');
-        localStorage.removeItem('username');
+        localStorage.clear();
         window.location.href = 'login.html';
     }
 
-    // --- START THE DASHBOARD ---
+    // INIT
     initializeAdminDashboard();
 });

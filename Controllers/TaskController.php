@@ -1,5 +1,8 @@
 <?php
 require_once './models/Task.php';
+require_once './helpers/mail_helper.php';
+
+
 
 class TaskController {
     private $taskModel;
@@ -8,7 +11,7 @@ class TaskController {
         $this->taskModel = new Task($db);
     }
 
-    // Admin creates a task
+    // Admin assign a task
     public function create($data, $authUser) {
         if ($authUser->role !== 'Admin') {
             http_response_code(403);
@@ -19,12 +22,17 @@ class TaskController {
         $description = $data['description'] ?? '';
         $deadline = $data['deadline'] ?? '';
         $assignedTo = $data['user_id'] ?? '';
+       
+
 
         if (!$title || !$assignedTo) {
             http_response_code(400);
             return ['message' => 'Title and user_id are required'];
         }
-
+        
+ if ($user && !empty($user['Email'])) {
+        sendTaskNotification($user['Email'], $title);  // ✅ Send the email
+    }
         return $this->taskModel->createTask($title, $description, $deadline, $authUser->sub, $assignedTo);
     }
 

@@ -63,15 +63,25 @@ class Task {
         return ['message' => 'Task status updated'];
     }
 
-    public function getTasksCreatedBy($adminId) {
+   public function getTasksCreatedBy($adminId) {
     $stmt = $this->conn->prepare("
-        SELECT TaskID, Title, Description, Deadline, Status, CreatedAt
-        FROM Tasks
-        WHERE CreatedBy = ?
-        ORDER BY CreatedAt DESC
+        SELECT 
+            t.TaskID, 
+            t.Title, 
+            t.Description, 
+            t.Deadline, 
+            t.Status, 
+            t.CreatedAt,
+            u.Username AS AssignedToUsername
+        FROM Tasks t
+        JOIN TaskAssignments ta ON t.TaskID = ta.TaskID
+        JOIN Users u ON ta.UserID = u.UserID
+        WHERE t.CreatedBy = ?
+        ORDER BY t.CreatedAt DESC
     ");
     $stmt->execute([$adminId]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
 
 }

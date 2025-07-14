@@ -31,7 +31,6 @@ const API_BASE = "http://localhost/taskmanager/api";
 function loadTasks(token) {
   const tableBody = document.querySelector("#tasksTable tbody");
 
-  // ✅ THE FIX IS HERE: The URL now points to '/tasks' to match your api.php
   fetch(`${API_BASE}/tasks`, {
     method: 'GET',
     headers: {
@@ -39,28 +38,23 @@ function loadTasks(token) {
     }
   })
   .then(res => {
-    // If the server responds with an error (like 401 Unauthorized or 500 Server Error)
     if (!res.ok) {
       throw new Error('Could not get tasks. Please try logging in again.');
     }
     return res.json();
   })
   .then(response => {
-    // IMPORTANT: Assumes your PHP API returns JSON like: { "success": true, "data": [...] }
-    const tasks = response.data || [];
-    
-    // Clear the "Loading..." message from the table
-    tableBody.innerHTML = ""; 
+    const tasks = Array.isArray(response) ? response : [];
+    console.log("response:", response);
 
-    // --- Handle the "No Tasks" Case ---
-    if (tasks.length === 0) {
-      tableBody.innerHTML = '<tr><td colspan="4" class="text-center p-4">You have no tasks assigned. Great job!</td></tr>';
-      return;
-    }
+    tableBody.innerHTML = "";
 
-    // --- Build the Table with Tasks ---
+    // if (tasks.length === 0) {
+      // tableBody.innerHTML = '<tr><td colspan="4" class="text-center p-4">You have no tasks assigned. Great job!</td></tr>';
+      // return;
+    // }
+
     tasks.forEach(task => {
-      // IMPORTANT: These property names (TaskID, Title, etc.) must match what your PHP API sends.
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${task.Title}</td>
@@ -74,17 +68,11 @@ function loadTasks(token) {
           </select>
         </td>
       `;
-      
-      // Find the dropdown we just created
+
       const statusDropdown = row.querySelector('.status-dropdown');
-      
-      // Set its value to the task's current status
-      statusDropdown.value = task.Status; 
-      
-      // Give it a color for better UX
+      statusDropdown.value = task.Status;
       setDropdownColor(statusDropdown, task.Status);
 
-      // Add the listener that calls the API when the status changes
       statusDropdown.addEventListener('change', (event) => {
         const newStatus = event.target.value;
         const taskId = event.target.dataset.taskId;
@@ -96,8 +84,6 @@ function loadTasks(token) {
   })
   .catch(err => {
     console.error("Error in loadTasks:", err);
-    // --- Graceful Error Handling for the User ---
-    // Display a friendly error inside the table instead of an alert.
     tableBody.innerHTML = `
       <tr>
         <td colspan="4" class="text-center text-danger p-4">
@@ -107,6 +93,7 @@ function loadTasks(token) {
       </tr>`;
   });
 }
+
 
 /**
  * Updates the status of a specific task via an API call.
