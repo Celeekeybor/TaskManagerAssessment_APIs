@@ -29,30 +29,31 @@ class User {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
-    public function update($id, $data) {
-        $fields = [];
-        $params = [];
+   public function update($id, $data) {
+    $fields = [];
+    $params = [];
 
-        if (isset($data['username'])) {
-            $fields[] = 'Username = ?';
-            $params[] = $data['username'];
-        }
-        if (isset($data['email'])) {
-            $fields[] = 'Email = ?';
-            $params[] = $data['email'];
-        }
-        if (isset($data['role'])) {
-            $fields[] = 'Role = ?';
-            $params[] = $data['role'];
-        }
-
-        if (empty($fields)) return false;
-
-        $params[] = $id;
-        $sql = "UPDATE {$this->table} SET " . implode(', ', $fields) . " WHERE UserID = ?";
-        $stmt = $this->conn->prepare($sql);
-        return $stmt->execute($params);
+    if (!empty($data['username'])) {
+        $fields[] = "Username = ?";
+        $params[] = $data['username'];
     }
+
+    if (!empty($data['email'])) {
+        $fields[] = "Email = ?";
+        $params[] = $data['email'];
+    }
+
+    if (empty($fields)) {
+        return false; // Nothing to update
+    }
+
+    $params[] = $id;
+    $sql = "UPDATE Users SET " . implode(', ', $fields) . " WHERE UserID = ?";
+
+    $stmt = $this->conn->prepare($sql);
+    return $stmt->execute($params);
+}
+
 
     public function findById($id) {
     $stmt = $this->conn->prepare("SELECT UserID, Username, Email, Role, CreatedAt FROM {$this->table} WHERE UserID = :id");

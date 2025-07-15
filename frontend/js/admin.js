@@ -9,6 +9,14 @@ document.addEventListener("DOMContentLoaded", () => {
     const addUserForm = document.getElementById('addUserForm');
     const assignTaskForm = document.getElementById('assignTaskForm');
     const userSelectDropdown = document.querySelector('select[name="user_id"]');
+    
+
+    const editUserModal = new bootstrap.Modal(document.getElementById('editUserModal'));
+const editUserForm = document.getElementById('editUserForm');
+const editUsernameInput = document.getElementById('editUsername');
+const editEmailInput = document.getElementById('editEmail');
+const editUserIdInput = document.getElementById('editUserId');
+
 
     // --- AUTH & INIT ---
     function initializeAdminDashboard() {
@@ -24,6 +32,27 @@ document.addEventListener("DOMContentLoaded", () => {
         addUserForm.addEventListener('submit', handleAddUser);
         assignTaskForm.addEventListener('submit', handleAssignTask);
         userListTableBody.addEventListener('click', handleUserActions);
+
+        editUserForm.addEventListener('submit', async function (e) {
+    e.preventDefault();
+
+    const userId = editUserIdInput.value;
+    const newUsername = editUsernameInput.value.trim();
+    const newEmail = editEmailInput.value.trim();
+
+    try {
+        await apiFetch(`/users/${userId}`, 'PUT', {
+            username: newUsername,
+            email: newEmail
+        });
+        editUserModal.hide();
+        loadAllUsers();
+    } catch (error) {
+        alert(`Update failed: ${error.message}`);
+    }
+});
+
+
 
         loadAllUsers();
         loadAllTasks();
@@ -114,20 +143,34 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     }
 
-    function handleUserActions(event) {
-        const target = event.target;
-        const userId = target.dataset.userId;
+   function handleUserActions(event) {
+    const target = event.target;
+    const userId = target.dataset.userId;
 
-        if (target.classList.contains('delete-user-btn')) {
-            if (confirm(`Are you sure you want to delete user with ID: ${userId}?`)) {
-                deleteUser(userId);
-            }
-        }
-
-        if (target.classList.contains('edit-user-btn')) {
-            alert(`Edit functionality for user ID: ${userId} is not yet implemented.`);
+    if (target.classList.contains('delete-user-btn')) {
+        if (confirm(`Are you sure you want to delete user with ID: ${userId}?`)) {
+            deleteUser(userId);
         }
     }
+
+    if (target.classList.contains('edit-user-btn')) {
+        openEditUserModal(userId);
+    }
+}
+
+function openEditUserModal(userId) {
+    // Fetch the current user info from table (or make API call if needed)
+    const row = document.querySelector(`button[data-user-id="${userId}"]`).closest('tr');
+    const currentName = row.children[1].textContent;
+    const currentEmail = row.children[2].textContent;
+
+    editUserIdInput.value = userId;
+    editUsernameInput.value = currentName;
+    editEmailInput.value = currentEmail;
+
+    editUserModal.show();
+}
+
 
     async function deleteUser(userId) {
         try {

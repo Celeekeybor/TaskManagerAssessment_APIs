@@ -61,6 +61,8 @@ class UserController {
         return ['message' => 'Update failed'];
     }
 
+    
+
     public function delete($id, $authUser) {
         if ($authUser->role !== 'Admin') {
             http_response_code(403);
