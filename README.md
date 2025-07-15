@@ -23,7 +23,21 @@ A full-featured **Task Management System** built using **PHP**, **MySQL**, and *
 -  Update task status (`Pending`, `In Progress`, `Completed`)
 -  Receive email when a new task is assigned
 
+
 ---
+
+
+### 🗂 functionality
+![add and edit user](./image1ad.png)
+
+### 🗂 assign task with deadline
+![Job List](./assign.png)
+
+### 🗂 email notfication
+![email](./email.png)
+
+
+
 
 ## 🛠️ Built With
 
