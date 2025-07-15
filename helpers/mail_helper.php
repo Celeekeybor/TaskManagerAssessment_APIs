@@ -26,6 +26,10 @@ function sendTaskNotification($toEmail, $recipientName, $taskTitle, $description
 
         // Email content
         $mail->isHTML(true);
+    
+        $mail->CharSet = 'UTF-8';
+$mail->Encoding = 'base64';
+        
         $mail->Subject = '📌 New Task Assigned to You';
         $mail->Body = "
             <div style='font-family: Arial, sans-serif; color: #333;'>
@@ -53,4 +57,6 @@ function sendTaskNotification($toEmail, $recipientName, $taskTitle, $description
         error_log("Mailer Error: {$mail->ErrorInfo}");
         return false;
     }
+
 }
+

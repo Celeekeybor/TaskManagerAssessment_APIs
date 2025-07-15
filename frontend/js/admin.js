@@ -183,7 +183,7 @@ function openEditUserModal(userId) {
     }
 
     // --- TASKS ---
-   async function loadAllTasks() {
+ async function loadAllTasks() {
     try {
         const response = await apiFetch('/admin/tasks');
         console.log('Tasks response:', response);
@@ -198,11 +198,26 @@ function openEditUserModal(userId) {
         }
 
         tasks.forEach(task => {
+            let badgeClass = 'bg-secondary';
+
+            // Set badge color based on status
+            switch (task.Status.toLowerCase()) {
+                case 'completed':
+                    badgeClass = 'bg-success';
+                    break;
+                case 'pending':
+                    badgeClass = 'bg-warning text-dark';
+                    break;
+                case 'in progress':
+                    badgeClass = 'bg-primary';
+                    break;
+            }
+
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td>${task.Title}</td>
                 <td>${task.AssignedToUsername || 'N/A'}</td>
-                <td><span class="badge bg-secondary">${task.Status}</span></td>
+                <td><span class="badge ${badgeClass}">${task.Status}</span></td>
                 <td>${new Date(task.Deadline).toLocaleDateString()}</td>
             `;
             taskListTableBody.appendChild(row);
@@ -212,6 +227,7 @@ function openEditUserModal(userId) {
         taskListTableBody.innerHTML = `<tr><td colspan="4" class="text-center text-danger">${error.message}</td></tr>`;
     }
 }
+
 
 
     async function handleAssignTask(event) {
